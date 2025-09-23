@@ -35,7 +35,7 @@ export default async function handler(
 
     // Initialize LangChain components
     const llm = new ChatGroq({
-      apiKey: process.env.GROQ_API_KEY || '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',
+      apiKey: process.env.GROQ_API_KEY || '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',
       model: 'meta-llama/llama-4-scout-17b-16e-instruct',
       temperature: 0.7,
       maxTokens: 2000,
