@@ -4,12 +4,18 @@ import { StringOutputParser } from '@langchain/core/output_parsers';
 import { RunnableSequence } from '@langchain/core/runnables';
 
 // Initialize the LLM
-const createLLM = () => new ChatGroq({
-  apiKey: process.env.GROQ_API_KEY || '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',
-  model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-  temperature: 0.7,
-  maxTokens: 2000,
-});
+const createLLM = () => {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not set in environment variables');
+  }
+  
+  return new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    temperature: 0.7,
+    maxTokens: 2000,
+  });
+};
 
 // Strategy Agent - Creates comprehensive marketing strategies
 export class StrategyAgent {
