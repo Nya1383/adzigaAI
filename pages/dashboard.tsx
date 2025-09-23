@@ -26,6 +26,21 @@ export default function Dashboard() {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+  
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (mobileMenuOpen && !target.closest('header')) {
+        setMobileMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
   const [clientData, setClientData] = useState<Client | null>(null);
   const [loadingClient, setLoadingClient] = useState(true);
 
@@ -185,55 +200,65 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
-        {/* Mobile menu overlay */}
-        {mobileMenuOpen && (
-          <div 
-            className="sm:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={toggleMobileMenu}
-          />
-        )}
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row justify-between py-2">
-            <div className="flex justify-between items-center h-14">
-              <h1 className="text-xl font-bold text-gray-900">Adziga AI</h1>
-              <button 
-                className="sm:hidden p-2 text-gray-600 hover:text-gray-900"
-                onClick={toggleMobileMenu}
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </button>
-            </div>
-            <div 
-              className={`
-                ${mobileMenuOpen ? 'flex' : 'hidden'} 
-                sm:flex flex-col sm:flex-row 
-                items-start sm:items-center 
-                space-y-2 sm:space-y-0 sm:space-x-4 
-                pb-2 sm:pb-0
-                transition-all duration-200 ease-in-out
-              `}
+          {/* Top Bar with Logo and Menu Button */}
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-bold text-gray-900">Adziga AI</h1>
+            <button 
+              className="sm:hidden p-2 text-gray-600 hover:text-gray-900"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
             >
-              <span className="text-sm text-gray-600">Welcome, {clientData.businessInfo.businessName}</span>
-              <button
-                onClick={async () => {
-                  try {
-                    await logout();
-                    router.push('/');
-                  } catch (error) {
-                    console.error('Logout error:', error);
-                    router.push('/');
-                  }
-                }}
-                className="text-sm text-red-600 hover:text-red-800"
-              >
-                Logout
-              </button>
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
+          </div>
+          
+          {/* Mobile Menu */}
+          <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
+            <div className="pt-2 pb-3 space-y-1">
+              {['overview', 'profile', 'strategies', 'campaigns', 'analytics'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                    activeTab === tab
+                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+              <div className="pt-4 pb-3 border-t border-gray-200 mt-2">
+                <div className="flex items-center px-4">
+                  <div className="text-sm text-gray-500">Welcome, {clientData.businessInfo.businessName}</div>
+                </div>
+                <div className="mt-3 px-2 space-y-1">
+                  <button
+                    onClick={async () => {
+                      try {
+                        await logout();
+                        router.push('/');
+                      } catch (error) {
+                        console.error('Logout error:', error);
+                        router.push('/');
+                      }
+                    }}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-800 rounded-md"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          {/* Navigation Tabs */}
-          <div className="border-t border-gray-200 pt-2">
-            <nav className="-mb-px flex space-x-8 overflow-x-auto">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden sm:block border-t border-gray-200 pt-2">
+            <nav className="-mb-px flex space-x-8">
               {['overview', 'profile', 'strategies', 'campaigns', 'analytics'].map((tab) => (
                 <button
                   key={tab}
@@ -252,15 +277,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main 
-        className={`
-          max-w-7xl mx-auto px-4 sm:px-6 py-6 
-          transition-all duration-200 ease-in-out
-          ${mobileMenuOpen ? 'opacity-50' : 'opacity-100'}
-          mt-36 sm:mt-28
-        `}
-        onClick={() => mobileMenuOpen && setMobileMenuOpen(false)}
-      >
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 mt-20 sm:mt-28">
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
