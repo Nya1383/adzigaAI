@@ -19,6 +19,13 @@ export default function Dashboard() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  // State for mobile menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
   const [clientData, setClientData] = useState<Client | null>(null);
   const [loadingClient, setLoadingClient] = useState(true);
 
@@ -177,13 +184,36 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Adziga AI Dashboard</h1>
+      <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+        {/* Mobile menu overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="sm:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={toggleMobileMenu}
+          />
+        )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row justify-between py-2">
+            <div className="flex justify-between items-center h-14">
+              <h1 className="text-xl font-bold text-gray-900">Adziga AI</h1>
+              <button 
+                className="sm:hidden p-2 text-gray-600 hover:text-gray-900"
+                onClick={toggleMobileMenu}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? '✕' : '☰'}
+              </button>
             </div>
-            <div className="flex items-center space-x-4">
+            <div 
+              className={`
+                ${mobileMenuOpen ? 'flex' : 'hidden'} 
+                sm:flex flex-col sm:flex-row 
+                items-start sm:items-center 
+                space-y-2 sm:space-y-0 sm:space-x-4 
+                pb-2 sm:pb-0
+                transition-all duration-200 ease-in-out
+              `}
+            >
               <span className="text-sm text-gray-600">Welcome, {clientData.businessInfo.businessName}</span>
               <button
                 onClick={async () => {
@@ -201,28 +231,36 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+          {/* Navigation Tabs */}
+          <div className="border-t border-gray-200 pt-2">
+            <nav className="-mb-px flex space-x-8 overflow-x-auto">
+              {['overview', 'profile', 'strategies', 'campaigns', 'analytics'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                    activeTab === tab
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation Tabs */}
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8">
-            {['overview', 'profile', 'strategies', 'campaigns', 'analytics'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
-                  activeTab === tab
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </nav>
-        </div>
+      <main 
+        className={`
+          max-w-7xl mx-auto px-4 sm:px-6 py-6 
+          transition-all duration-200 ease-in-out
+          ${mobileMenuOpen ? 'opacity-50' : 'opacity-100'}
+          mt-36 sm:mt-28
+        `}
+        onClick={() => mobileMenuOpen && setMobileMenuOpen(false)}
+      >
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
@@ -428,7 +466,7 @@ export default function Dashboard() {
             <p className="text-gray-500">Analytics dashboard coming soon...</p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 } 
