@@ -725,8 +725,9 @@ export default function Dashboard() {
                     return acc;
                   }, {} as Record<string, any[]>)
                 ).map(([strategyId, strategyCampaigns], index) => {
-                  const totalBudget = strategyCampaigns.reduce((sum, c) => sum + c.budget.allocated, 0);
-                  const activeCampaigns = strategyCampaigns.filter(c => c.enabled).length;
+                  const campaignList = strategyCampaigns as any[];
+                  const totalBudget = campaignList.reduce((sum: number, c: any) => sum + c.budget.allocated, 0);
+                  const activeCampaigns = campaignList.filter((c: any) => c.enabled).length;
                   const isExpanded = expandedStrategy === strategyId;
                   
                   return (
@@ -746,13 +747,13 @@ export default function Dashboard() {
                                 Strategy #{index + 1}
                               </h3>
                               <p className="text-sm text-gray-500">
-                                {strategyCampaigns.length} campaign{strategyCampaigns.length !== 1 ? 's' : ''} • 
+                                {campaignList.length} campaign{campaignList.length !== 1 ? 's' : ''} • 
                                 {activeCampaigns} active • 
-                                Created {new Date(strategyCampaigns[0].createdAt).toLocaleDateString()}
+                                Created {new Date(campaignList[0].createdAt).toLocaleDateString()}
                               </p>
-                              {strategyCampaigns[0].strategyPreview && (
+                              {campaignList[0].strategyPreview && (
                                 <p className="text-xs text-gray-400 mt-1 max-w-md truncate">
-                                  {strategyCampaigns[0].strategyPreview}
+                                  {campaignList[0].strategyPreview}
                                 </p>
                               )}
                             </div>
@@ -761,7 +762,7 @@ export default function Dashboard() {
                           <div className="flex items-center space-x-6">
                             {/* Platform Icons */}
                             <div className="flex space-x-2">
-                              {strategyCampaigns.map(campaign => (
+                              {campaignList.map((campaign: any) => (
                                 <div
                                   key={campaign.id}
                                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
@@ -802,7 +803,7 @@ export default function Dashboard() {
                       {isExpanded && (
                         <div className="border-t border-gray-200 bg-gray-50">
                           <div className="p-6 space-y-4">
-                            {strategyCampaigns.map((campaign) => (
+                            {campaignList.map((campaign: any) => (
                               <div key={campaign.id} className="bg-white p-4 rounded-lg border border-gray-200">
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center space-x-3">
