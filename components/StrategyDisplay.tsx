@@ -4,9 +4,10 @@ interface StrategyDisplayProps {
   content: string;
   timestamp: string;
   status: 'pending' | 'approved' | 'rejected';
+  onLaunchCampaign?: (budgetAllocation: any, strategyContent?: string) => void;
 }
 
-export default function StrategyDisplay({ content, timestamp, status }: StrategyDisplayProps) {
+export default function StrategyDisplay({ content, timestamp, status, onLaunchCampaign }: StrategyDisplayProps) {
   // Parse the strategy content into sections
   const parseStrategy = (text: string) => {
     const sections: { title: string; content: string }[] = [];
@@ -99,6 +100,57 @@ export default function StrategyDisplay({ content, timestamp, status }: Strategy
 
   const sections = parseStrategy(content);
 
+  // Parse budget allocation from strategy content
+  const parseBudgetAllocation = (strategyContent: string) => {
+    const defaultAllocation = {
+      meta: { percentage: 40, amount: 0, enabled: true },
+      google: { percentage: 40, amount: 0, enabled: true },
+      whatsapp: { percentage: 20, amount: 0, enabled: true },
+      total: 0
+    };
+
+    try {
+      // Look for budget allocation section
+      const budgetSection = strategyContent.toLowerCase();
+      
+      // Extract percentages for each platform
+      let metaPercentage = 40;
+      let googlePercentage = 40;
+      let whatsappPercentage = 20;
+
+      // Try to find specific percentages mentioned in the content
+      const metaMatch = budgetSection.match(/meta.*?(\d+)%|facebook.*?(\d+)%|instagram.*?(\d+)%/);
+      const googleMatch = budgetSection.match(/google.*?(\d+)%/);
+      const whatsappMatch = budgetSection.match(/whatsapp.*?(\d+)%/);
+
+      if (metaMatch) metaPercentage = parseInt(metaMatch[1] || metaMatch[2] || '40');
+      if (googleMatch) googlePercentage = parseInt(googleMatch[1] || '40');
+      if (whatsappMatch) whatsappPercentage = parseInt(whatsappMatch[1] || '20');
+
+      // Determine enabled platforms based on content
+      const metaEnabled = !budgetSection.includes('avoid meta') && !budgetSection.includes('no facebook') && !budgetSection.includes('exclude meta');
+      const googleEnabled = !budgetSection.includes('avoid google') && !budgetSection.includes('no google') && !budgetSection.includes('exclude google');
+      const whatsappEnabled = !budgetSection.includes('avoid whatsapp') && !budgetSection.includes('no whatsapp') && !budgetSection.includes('exclude whatsapp');
+
+      return {
+        meta: { percentage: metaPercentage, amount: 0, enabled: metaEnabled },
+        google: { percentage: googlePercentage, amount: 0, enabled: googleEnabled },
+        whatsapp: { percentage: whatsappPercentage, amount: 0, enabled: whatsappEnabled },
+        total: 0
+      };
+    } catch (error) {
+      console.warn('Could not parse budget allocation, using defaults');
+      return defaultAllocation;
+    }
+  };
+
+  const handleLaunchCampaign = () => {
+    if (onLaunchCampaign) {
+      const budgetAllocation = parseBudgetAllocation(content);
+      onLaunchCampaign(budgetAllocation, content);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
@@ -171,7 +223,10 @@ export default function StrategyDisplay({ content, timestamp, status }: Strategy
           <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             📋 Copy Strategy
           </button>
-          <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <button 
+            onClick={handleLaunchCampaign}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
             🚀 Launch Campaign
           </button>
         </div>

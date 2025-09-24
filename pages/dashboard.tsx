@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../lib/auth-context';
 import { useRouter } from 'next/router';
 import Loading from '../components/ui/Loading';
 import { ClientService, SimpleStrategyService } from '../services/firestore';
 import { Client } from '../types';
 import StrategyDisplay from '../components/StrategyDisplay';
+import ChatBot from '../components/ChatBot';
 
 interface Strategy {
   id: string;
@@ -21,6 +22,14 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   // State for mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // State for desktop user dropdown
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+  // State for chatbot
+  const [chatBotOpen, setChatBotOpen] = useState(false);
+  // State for campaigns
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [expandedStrategy, setExpandedStrategy] = useState<string | null>(null);
   
   // Toggle mobile menu
   const toggleMobileMenu = () => {
@@ -41,6 +50,20 @@ export default function Dashboard() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [mobileMenuOpen]);
+  
+  // Close user dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   const [clientData, setClientData] = useState<Client | null>(null);
   const [loadingClient, setLoadingClient] = useState(true);
 
@@ -192,6 +215,83 @@ export default function Dashboard() {
     }
   };
 
+  const handleChatBotStrategy = async (strategyData: any) => {
+    const newStrategy: Strategy = {
+      id: Date.now().toString(),
+      content: strategyData.content,
+      timestamp: strategyData.timestamp,
+      status: 'pending'
+    };
+    setStrategies(prev => [newStrategy, ...prev]);
+    
+    // Save strategy to Firestore
+    try {
+      console.log('💾 Saving chatbot strategy to Firestore for client:', clientData?.id);
+      const saveResult = await SimpleStrategyService.createStrategy({
+        clientId: clientData!.id,
+        content: strategyData.content,
+        status: 'pending',
+        metadata: {
+          ...strategyData.metadata,
+          customPrompt: strategyData.customPrompt,
+          source: 'chatbot'
+        }
+      });
+      console.log('✅ Chatbot strategy save result:', saveResult);
+      
+      if (saveResult.success) {
+        console.log('✅ Chatbot strategy saved to Firestore successfully');
+        // Update the strategy ID with the Firestore document ID
+        setStrategies(prev => prev.map(strategy => 
+          strategy.id === newStrategy.id 
+            ? { ...strategy, id: saveResult.data.id }
+            : strategy
+        ));
+      } else {
+        console.error('❌ Failed to save chatbot strategy:', saveResult.error);
+      }
+    } catch (error) {
+      console.error('❌ Error saving chatbot strategy to Firestore:', error);
+    }
+  };
+
+  const handleLaunchCampaign = (budgetAllocation: any, strategyContent?: string) => {
+    console.log('🚀 Launching campaign with budget allocation:', budgetAllocation);
+    
+    // Calculate actual amounts based on client budget
+    const totalBudget = clientData?.businessInfo.budget || 50000;
+    const enabledPlatforms = Object.keys(budgetAllocation).filter(
+      key => key !== 'total' && budgetAllocation[key].enabled
+    );
+    
+    const strategyId = `strategy_${Date.now()}`;
+    const strategyPreview = strategyContent ? strategyContent.substring(0, 200) + '...' : '';
+    
+    const newCampaigns = enabledPlatforms.map((platform) => ({
+      id: `campaign_${platform}_${Date.now()}`,
+      platform,
+      name: `${clientData?.businessInfo.businessName} - ${platform.charAt(0).toUpperCase() + platform.slice(1)} Campaign`,
+      status: 'draft',
+      budget: {
+        allocated: Math.round((budgetAllocation[platform].percentage / 100) * totalBudget),
+        spent: 0,
+        remaining: Math.round((budgetAllocation[platform].percentage / 100) * totalBudget)
+      },
+      enabled: budgetAllocation[platform].enabled,
+      createdAt: new Date().toISOString(),
+      strategyBased: true,
+      strategyId,
+      strategyPreview
+    }));
+
+    setCampaigns(prev => [...newCampaigns, ...prev]);
+    
+    // Switch to campaigns tab to show the created campaigns
+    setActiveTab('campaigns');
+    
+    console.log('✅ Campaigns created:', newCampaigns);
+  };
+
   if (loading || loadingClient) return <Loading />;
   if (!user) return <Loading />;
   if (!clientData) return <Loading />;
@@ -201,9 +301,98 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          {/* Top Bar with Logo and Menu Button */}
+          {/* Top Bar with Logo and User Menu */}
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-bold text-gray-900">Adziga AI</h1>
+            
+            {/* Desktop User Menu */}
+            <div className="hidden sm:flex items-center space-x-4">
+              <div className="relative" ref={userDropdownRef}>
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-2 transition-colors duration-200"
+                >
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-medium text-sm">
+                      {clientData.businessInfo.businessName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">{clientData.businessInfo.businessName}</div>
+                    <div className="text-xs text-gray-500">Welcome back</div>
+                  </div>
+                  <svg 
+                    className={`w-4 h-4 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                    <div className="py-1">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">{clientData.businessInfo.businessName}</p>
+                        <p className="text-sm text-gray-500">{user?.email}</p>
+                      </div>
+                      
+                      <button
+                        onClick={() => {
+                          setActiveTab('profile');
+                          setUserDropdownOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        View Profile
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setActiveTab('strategies');
+                          setUserDropdownOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        My Strategies
+                      </button>
+                      
+                      <div className="border-t border-gray-100">
+                        <button
+                          onClick={async () => {
+                            setUserDropdownOpen(false);
+                            try {
+                              await logout();
+                              router.push('/');
+                            } catch (error) {
+                              console.error('Logout error:', error);
+                              router.push('/');
+                            }
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center"
+                        >
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
             <button 
               className="sm:hidden p-2 text-gray-600 hover:text-gray-900"
               onClick={toggleMobileMenu}
@@ -421,23 +610,39 @@ export default function Dashboard() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-900">AI-Generated Strategies</h2>
-              <button
-                onClick={generateStrategy}
-                disabled={isGenerating}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium flex items-center"
-              >
-                {isGenerating ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generating...
-                  </>
-                ) : (
-                  'Generate New Strategy'
-                )}
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setChatBotOpen(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>Customize Strategy</span>
+                </button>
+                <button
+                  onClick={generateStrategy}
+                  disabled={isGenerating}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <svg className="animate-spin w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>Generate New Strategy</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -445,14 +650,28 @@ export default function Dashboard() {
                 <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
                   <div className="text-6xl mb-4">🤖</div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">No Strategies Yet</h3>
-                  <p className="text-gray-500 mb-4">Generate your first AI-powered marketing strategy to get started!</p>
-                  <button
-                    onClick={generateStrategy}
-                    disabled={isGenerating}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg font-medium"
-                  >
-                    {isGenerating ? 'Generating...' : '✨ Generate My First Strategy'}
-                  </button>
+                  <p className="text-gray-500 mb-6">Generate your first AI-powered marketing strategy to get started!</p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button
+                      onClick={() => setChatBotOpen(true)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      <span>💬 Tell AI What You Want</span>
+                    </button>
+                    <button
+                      onClick={generateStrategy}
+                      disabled={isGenerating}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg font-medium flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>{isGenerating ? 'Generating...' : '✨ Generate Standard Strategy'}</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 strategies.map((strategy) => (
@@ -461,6 +680,7 @@ export default function Dashboard() {
                     content={strategy.content}
                     timestamp={strategy.timestamp}
                     status={strategy.status}
+                    onLaunchCampaign={handleLaunchCampaign}
                   />
                 ))
               )}
@@ -470,9 +690,223 @@ export default function Dashboard() {
 
         {/* Campaigns Tab */}
         {activeTab === 'campaigns' && (
-          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Campaign Management</h2>
-            <p className="text-gray-500">Campaign execution features coming soon...</p>
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Campaign Management</h2>
+              <div className="text-sm text-gray-500">
+                Total Budget: ₹{clientData.businessInfo.budget.toLocaleString()}
+              </div>
+            </div>
+
+            {campaigns.length === 0 ? (
+              <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+                <div className="text-6xl mb-4">📈</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Campaigns Yet</h3>
+                <p className="text-gray-500 mb-4">
+                  Create campaigns by launching them from your AI-generated strategies in the Strategies tab.
+                </p>
+                <button
+                  onClick={() => setActiveTab('strategies')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
+                >
+                  Go to Strategies
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Group campaigns by strategy */}
+                {Object.entries(
+                  campaigns.reduce((acc, campaign) => {
+                    const strategyId = campaign.strategyId || 'unknown';
+                    if (!acc[strategyId]) {
+                      acc[strategyId] = [];
+                    }
+                    acc[strategyId].push(campaign);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([strategyId, strategyCampaigns], index) => {
+                  const totalBudget = strategyCampaigns.reduce((sum, c) => sum + c.budget.allocated, 0);
+                  const activeCampaigns = strategyCampaigns.filter(c => c.enabled).length;
+                  const isExpanded = expandedStrategy === strategyId;
+                  
+                  return (
+                    <div key={strategyId} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      {/* Strategy Overview Card */}
+                      <div 
+                        className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => setExpandedStrategy(isExpanded ? null : strategyId)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                Strategy #{index + 1}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {strategyCampaigns.length} campaign{strategyCampaigns.length !== 1 ? 's' : ''} • 
+                                {activeCampaigns} active • 
+                                Created {new Date(strategyCampaigns[0].createdAt).toLocaleDateString()}
+                              </p>
+                              {strategyCampaigns[0].strategyPreview && (
+                                <p className="text-xs text-gray-400 mt-1 max-w-md truncate">
+                                  {strategyCampaigns[0].strategyPreview}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-6">
+                            {/* Platform Icons */}
+                            <div className="flex space-x-2">
+                              {strategyCampaigns.map(campaign => (
+                                <div
+                                  key={campaign.id}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                                    campaign.platform === 'meta' ? 'bg-blue-100 text-blue-600' :
+                                    campaign.platform === 'google' ? 'bg-red-100 text-red-600' :
+                                    'bg-green-100 text-green-600'
+                                  } ${campaign.enabled ? '' : 'opacity-50'}`}
+                                  title={`${campaign.platform} - ${campaign.enabled ? 'Active' : 'Inactive'}`}
+                                >
+                                  {campaign.platform === 'meta' ? '📘' :
+                                   campaign.platform === 'google' ? '🔍' : '💬'}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            <div className="text-right">
+                              <div className="text-lg font-semibold text-gray-900">
+                                ₹{totalBudget.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-gray-500">Total Budget</div>
+                            </div>
+                            
+                            <div className="text-gray-400">
+                              <svg 
+                                className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Expanded Campaign Details */}
+                      {isExpanded && (
+                        <div className="border-t border-gray-200 bg-gray-50">
+                          <div className="p-6 space-y-4">
+                            {strategyCampaigns.map((campaign) => (
+                              <div key={campaign.id} className="bg-white p-4 rounded-lg border border-gray-200">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                      campaign.platform === 'meta' ? 'bg-blue-100 text-blue-600' :
+                                      campaign.platform === 'google' ? 'bg-red-100 text-red-600' :
+                                      'bg-green-100 text-green-600'
+                                    }`}>
+                                      {campaign.platform === 'meta' ? '📘' :
+                                       campaign.platform === 'google' ? '🔍' : '💬'}
+                                    </div>
+                                    <div>
+                                      <h4 className="font-medium text-gray-900">{campaign.name}</h4>
+                                      <p className="text-sm text-gray-500">
+                                        {campaign.platform === 'meta' ? 'Meta (Facebook & Instagram)' :
+                                         campaign.platform === 'google' ? 'Google Ads' :
+                                         'WhatsApp Business'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-4">
+                                    <div className="text-right">
+                                      <div className="text-sm font-medium text-gray-900">
+                                        ₹{campaign.budget.allocated.toLocaleString()}
+                                      </div>
+                                      <div className="text-xs text-gray-500">Allocated</div>
+                                    </div>
+                                    
+                                    {/* Campaign Toggle */}
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={campaign.enabled}
+                                        onChange={(e) => {
+                                          setCampaigns(prev => prev.map(c => 
+                                            c.id === campaign.id 
+                                              ? { ...c, enabled: e.target.checked, status: e.target.checked ? 'active' : 'paused' }
+                                              : c
+                                          ));
+                                        }}
+                                        className="sr-only peer"
+                                      />
+                                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                  </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                  <div className="bg-gray-50 p-3 rounded-lg">
+                                    <div className="text-xs text-gray-500 mb-1">Status</div>
+                                    <div className={`text-sm font-medium ${
+                                      campaign.status === 'active' ? 'text-green-600' :
+                                      campaign.status === 'paused' ? 'text-yellow-600' :
+                                      'text-gray-600'
+                                    }`}>
+                                      {campaign.status === 'active' ? '🟢 Active' :
+                                       campaign.status === 'paused' ? '🟡 Paused' :
+                                       '⚪ Draft'}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-gray-50 p-3 rounded-lg">
+                                    <div className="text-xs text-gray-500 mb-1">Spent</div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      ₹{campaign.budget.spent.toLocaleString()}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-gray-50 p-3 rounded-lg">
+                                    <div className="text-xs text-gray-500 mb-1">Remaining</div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      ₹{campaign.budget.remaining.toLocaleString()}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Launch Campaign */}
+                                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                  <div className="flex items-center justify-between">
+                                    <div className="text-sm text-green-700">
+                                      🚀 {campaign.status === 'active' ? 'Campaign is running' : 'Ready to launch campaign'}
+                                    </div>
+                                    <button 
+                                      className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                                        campaign.status === 'active' 
+                                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
+                                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      }`}
+                                    >
+                                      {campaign.status === 'active' ? 'Pause' : 'Launch'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -484,6 +918,16 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* ChatBot Component */}
+      {clientData && (
+        <ChatBot
+          isOpen={chatBotOpen}
+          onClose={() => setChatBotOpen(false)}
+          clientData={clientData}
+          onStrategyGenerated={handleChatBotStrategy}
+        />
+      )}
     </div>
   );
 } 

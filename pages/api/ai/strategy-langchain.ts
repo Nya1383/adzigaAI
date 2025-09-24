@@ -70,6 +70,7 @@ TASK: Create a comprehensive, actionable advertising strategy that includes:
 
 3. 💰 BUDGET ALLOCATION
    - Recommended spend distribution
+   - exact amount of money in numbers to be shown for each platform 
    - Testing budget allocation
    - Scaling recommendations
 
