@@ -310,7 +310,7 @@ export default function Dashboard() {
       if (saveResult.success && saveResult.data) {
         console.log('✅ Campaigns saved to Firestore successfully');
         // Use the campaigns with Firestore IDs
-        setCampaigns(prev => [...saveResult.data, ...prev]);
+        setCampaigns(prev => [...(saveResult.data || []), ...prev]);
       } else {
         console.error('❌ Failed to save campaigns:', saveResult.error);
         // Still add to state even if Firestore fails
