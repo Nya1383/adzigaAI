@@ -620,6 +620,96 @@ export class SubscriptionService {
   }
 }
 
+// Simple Campaign Storage
+export class SimpleCampaignService {
+  private static collection = 'simple_campaigns';
+
+  static async createCampaigns(campaigns: any[]): Promise<APIResponse<any[]>> {
+    try {
+      console.log('💾 Creating campaigns:', campaigns);
+      const createdCampaigns = [];
+      
+      for (const campaign of campaigns) {
+        const campaignData = {
+          ...campaign,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+
+        const docRef = await addDoc(collection(db, this.collection), campaignData);
+        createdCampaigns.push({ ...campaignData, id: docRef.id });
+      }
+
+      console.log('✅ Campaigns created successfully:', createdCampaigns);
+      return { success: true, data: createdCampaigns };
+    } catch (error: any) {
+      console.error('❌ Error creating campaigns:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async getCampaignsByClient(clientId: string): Promise<APIResponse<any[]>> {
+    try {
+      console.log('🔍 Loading campaigns for client:', clientId);
+      
+      const q = query(
+        collection(db, this.collection),
+        where('clientId', '==', clientId)
+      );
+
+      const querySnapshot = await getDocs(q);
+      console.log('📊 Campaign query snapshot size:', querySnapshot.size);
+      
+      const campaigns = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('📄 Campaign document data:', { id: doc.id, ...data });
+        return {
+          id: doc.id,
+          ...data
+        };
+      });
+
+      // Sort by creation date (newest first)
+      campaigns.sort((a: any, b: any) => {
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+        return bTime - aTime;
+      });
+
+      console.log('✅ Retrieved and sorted campaigns:', campaigns);
+      return { success: true, data: campaigns };
+    } catch (error: any) {
+      console.error('❌ Error getting campaigns by client:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async updateCampaign(campaignId: string, updates: any): Promise<APIResponse<void>> {
+    try {
+      const docRef = doc(db, this.collection, campaignId);
+      await updateDoc(docRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error updating campaign:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async deleteCampaign(campaignId: string): Promise<APIResponse<void>> {
+    try {
+      await deleteDoc(doc(db, this.collection, campaignId));
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error deleting campaign:', error);
+      return { success: false, error: error.message };
+    }
+  }
+}
+
 // Simple Strategy Storage (for text-based strategies)
 export class SimpleStrategyService {
   private static collection = 'simple_strategies';

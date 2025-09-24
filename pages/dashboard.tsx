@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../lib/auth-context';
 import { useRouter } from 'next/router';
 import Loading from '../components/ui/Loading';
-import { ClientService, SimpleStrategyService } from '../services/firestore';
+import { ClientService, SimpleStrategyService, SimpleCampaignService } from '../services/firestore';
 import { Client } from '../types';
 import StrategyDisplay from '../components/StrategyDisplay';
 import ChatBot from '../components/ChatBot';
@@ -121,6 +121,22 @@ export default function Dashboard() {
               }
             } catch (error) {
               console.error('❌ Error loading strategies:', error);
+            }
+
+            // Load existing campaigns from Firestore
+            try {
+              console.log('🔍 Loading campaigns for client:', result.data!.id);
+              const campaignsResult = await SimpleCampaignService.getCampaignsByClient(result.data!.id);
+              console.log('📊 Campaigns result:', campaignsResult);
+              
+              if (campaignsResult.success && campaignsResult.data) {
+                console.log('📝 Raw campaigns data:', campaignsResult.data);
+                setCampaigns(campaignsResult.data);
+              } else {
+                console.log('❌ No campaigns found or error:', campaignsResult.error);
+              }
+            } catch (error) {
+              console.error('❌ Error loading campaigns:', error);
             }
           } else {
             // User hasn't completed onboarding, redirect to onboarding
@@ -255,7 +271,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleLaunchCampaign = (budgetAllocation: any, strategyContent?: string) => {
+  const handleLaunchCampaign = async (budgetAllocation: any, strategyContent?: string) => {
     console.log('🚀 Launching campaign with budget allocation:', budgetAllocation);
     
     // Calculate actual amounts based on client budget
@@ -269,6 +285,7 @@ export default function Dashboard() {
     
     const newCampaigns = enabledPlatforms.map((platform) => ({
       id: `campaign_${platform}_${Date.now()}`,
+      clientId: clientData!.id,
       platform,
       name: `${clientData?.businessInfo.businessName} - ${platform.charAt(0).toUpperCase() + platform.slice(1)} Campaign`,
       status: 'draft',
@@ -284,7 +301,26 @@ export default function Dashboard() {
       strategyPreview
     }));
 
-    setCampaigns(prev => [...newCampaigns, ...prev]);
+    // Save campaigns to Firestore first
+    try {
+      console.log('💾 Saving campaigns to Firestore for client:', clientData?.id);
+      const saveResult = await SimpleCampaignService.createCampaigns(newCampaigns);
+      console.log('✅ Campaigns save result:', saveResult);
+      
+      if (saveResult.success) {
+        console.log('✅ Campaigns saved to Firestore successfully');
+        // Use the campaigns with Firestore IDs
+        setCampaigns(prev => [...saveResult.data, ...prev]);
+      } else {
+        console.error('❌ Failed to save campaigns:', saveResult.error);
+        // Still add to state even if Firestore fails
+        setCampaigns(prev => [...newCampaigns, ...prev]);
+      }
+    } catch (error) {
+      console.error('❌ Error saving campaigns to Firestore:', error);
+      // Still add to state even if Firestore fails
+      setCampaigns(prev => [...newCampaigns, ...prev]);
+    }
     
     // Switch to campaigns tab to show the created campaigns
     setActiveTab('campaigns');
@@ -838,12 +874,32 @@ export default function Dashboard() {
                                       <input
                                         type="checkbox"
                                         checked={campaign.enabled}
-                                        onChange={(e) => {
+                                          onChange={async (e) => {
+                                          const newEnabled = e.target.checked;
+                                          const newStatus = newEnabled ? 'active' : 'paused';
+                                          
+                                          // Update local state immediately
                                           setCampaigns(prev => prev.map(c => 
                                             c.id === campaign.id 
-                                              ? { ...c, enabled: e.target.checked, status: e.target.checked ? 'active' : 'paused' }
+                                              ? { ...c, enabled: newEnabled, status: newStatus }
                                               : c
                                           ));
+
+                                          // Update in Firestore
+                                          try {
+                                            const updateResult = await SimpleCampaignService.updateCampaign(campaign.id, {
+                                              enabled: newEnabled,
+                                              status: newStatus
+                                            });
+                                            
+                                            if (updateResult.success) {
+                                              console.log('✅ Campaign updated in Firestore');
+                                            } else {
+                                              console.error('❌ Failed to update campaign:', updateResult.error);
+                                            }
+                                          } catch (error) {
+                                            console.error('❌ Error updating campaign:', error);
+                                          }
                                         }}
                                         className="sr-only peer"
                                       />
