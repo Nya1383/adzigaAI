@@ -307,7 +307,7 @@ export default function Dashboard() {
       const saveResult = await SimpleCampaignService.createCampaigns(newCampaigns);
       console.log('✅ Campaigns save result:', saveResult);
       
-      if (saveResult.success) {
+      if (saveResult.success && saveResult.data) {
         console.log('✅ Campaigns saved to Firestore successfully');
         // Use the campaigns with Firestore IDs
         setCampaigns(prev => [...saveResult.data, ...prev]);
