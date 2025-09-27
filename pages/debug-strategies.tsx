@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth-context';
 import { ClientService, SimpleStrategyService } from '../services/firestore';
+import { cleanMarkdownPreview } from '../utils';
 
 export default function DebugStrategies() {
   const { user } = useAuth();
@@ -131,7 +132,7 @@ export default function DebugStrategies() {
                   <p><strong>Created:</strong> {strategy.createdAt?.seconds ? 
                     new Date(strategy.createdAt.seconds * 1000).toLocaleString() : 
                     'Unknown'}</p>
-                  <p><strong>Content Preview:</strong> {strategy.content?.substring(0, 100)}...</p>
+                  <p><strong>Content Preview:</strong> {cleanMarkdownPreview(strategy.content, 100)}</p>
                 </div>
               ))}
             </div>

@@ -77,6 +77,20 @@ export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+// Markdown formatting utilities
+export function cleanMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove ** bold markers
+    .replace(/^#+\s*/gm, '') // Remove # headers
+    .replace(/^[-•*]\s*/gm, '• ') // Normalize bullet points
+    .replace(/\n\s*\n/g, '\n') // Remove extra line breaks
+    .trim();
+}
+
+export function cleanMarkdownPreview(text: string, maxLength: number = 100): string {
+  return cleanMarkdown(text).substring(0, maxLength) + (text.length > maxLength ? '...' : '');
+}
+
 export function slugify(str: string): string {
   return str
     .toLowerCase()

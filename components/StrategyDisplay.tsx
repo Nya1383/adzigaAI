@@ -58,44 +58,71 @@ export default function StrategyDisplay({ content, timestamp, status, onLaunchCa
       .map((line, index) => {
         const trimmedLine = line.trim();
         
+        // Skip empty lines
+        if (trimmedLine.length === 0) {
+          return <br key={index} />;
+        }
+        
+        // Handle headers (##, ###, etc.)
+        if (trimmedLine.startsWith('##')) {
+          const headerText = trimmedLine.replace(/^#+\s*/, '').trim();
+          return (
+            <h3 key={index} className="text-lg font-semibold text-gray-900 mt-4 mb-2">
+              {headerText}
+            </h3>
+          );
+        }
+        
+        if (trimmedLine.startsWith('#')) {
+          const headerText = trimmedLine.replace(/^#+\s*/, '').trim();
+          return (
+            <h2 key={index} className="text-xl font-bold text-gray-900 mt-6 mb-3">
+              {headerText}
+            </h2>
+          );
+        }
+        
         // Handle bullet points
         if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+          const bulletText = trimmedLine.substring(1).trim();
           return (
-            <li key={index} className="ml-4 mb-1">
-              {trimmedLine.substring(1).trim()}
+            <li key={index} className="ml-4 mb-1 text-gray-700">
+              {formatInlineText(bulletText)}
             </li>
           );
         }
         
         // Handle numbered lists
         if (/^\d+\./.test(trimmedLine)) {
+          const listText = trimmedLine.replace(/^\d+\.\s*/, '');
           return (
-            <li key={index} className="ml-4 mb-1 list-decimal">
-              {trimmedLine.replace(/^\d+\.\s*/, '')}
+            <li key={index} className="ml-4 mb-1 text-gray-700 list-decimal">
+              {formatInlineText(listText)}
             </li>
           );
         }
         
-        // Handle bold text (wrapped in **)
-        if (trimmedLine.includes('**')) {
-          const parts = trimmedLine.split('**');
-          return (
-            <p key={index} className="mb-2">
-              {parts.map((part, i) => 
-                i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-              )}
-            </p>
-          );
-        }
-        
         // Regular paragraph
-        if (trimmedLine.length > 0) {
-          return <p key={index} className="mb-2">{trimmedLine}</p>;
-        }
-        
-        return null;
+        return (
+          <p key={index} className="mb-3 text-gray-700 leading-relaxed">
+            {formatInlineText(trimmedLine)}
+          </p>
+        );
       })
       .filter(Boolean);
+  };
+
+  // Helper function to format inline text (bold, etc.)
+  const formatInlineText = (text: string) => {
+    // Handle bold text (wrapped in **)
+    if (text.includes('**')) {
+      const parts = text.split('**');
+      return parts.map((part, i) => 
+        i % 2 === 1 ? <strong key={i} className="font-semibold text-gray-900">{part}</strong> : part
+      );
+    }
+    
+    return text;
   };
 
   const sections = parseStrategy(content);

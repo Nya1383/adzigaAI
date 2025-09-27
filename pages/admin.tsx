@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth-context';
 import { useRouter } from 'next/router';
 import Loading from '../components/ui/Loading';
 import { AdminService } from '../services/firestore';
+import { formatDate, cleanMarkdownPreview } from '../utils';
 
 interface AdminStats {
   totalUsers: number;
@@ -376,8 +377,8 @@ export default function AdminDashboard() {
                           <div className="text-xs text-gray-500 mb-1">
                             {formatDate(strategy.createdAt)}
                           </div>
-                          <div className="text-sm">
-                            {strategy.content.substring(0, 100)}...
+                          <div className="text-sm text-gray-700">
+                            {cleanMarkdownPreview(strategy.content, 100)}
                           </div>
                           <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
                             strategy.status === 'approved' ? 'bg-green-100 text-green-800' :
