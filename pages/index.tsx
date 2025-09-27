@@ -105,9 +105,6 @@ export default function Home() {
               <a href="#features" className="text-gray-700 hover:text-blue-600 transition-colors px-3 py-2">
                 Features
               </a>
-              <a href="#pricing" className="text-gray-700 hover:text-blue-600 transition-colors px-3 py-2">
-                Pricing
-              </a>
               <Link href="/login" className="text-gray-700 hover:text-blue-600 transition-colors px-3 py-2 font-medium">
                 Login
               </Link>
@@ -164,13 +161,6 @@ export default function Home() {
             >
               Features
             </a>
-            <a 
-              href="#pricing" 
-              className="block px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-              onClick={(e) => handleNavigation(e, 'pricing')}
-            >
-              Pricing
-            </a>
             <div className="border-t border-gray-200 my-2"></div>
             <Link 
               href="/login" 
@@ -201,13 +191,10 @@ export default function Home() {
             Transform your business with autonomous advertising campaigns. Our AI creates strategies and executes campaigns across Meta, Google, and WhatsApp automatically.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link href="/onboarding" className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors">
               Start Your Campaign
             </Link>
-            <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors">
-              Watch Demo
-            </button>
           </div>
 
           {/* Platform Icons */}
@@ -303,105 +290,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="bg-gray-50 py-20 scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600">Choose the plan that works best for your business</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Basic Plan */}
-            <div className="bg-white p-8 rounded-xl shadow-md">
-              <h3 className="text-2xl font-bold mb-4">Starter</h3>
-              <p className="text-4xl font-bold text-gray-900 mb-6">$99<span className="text-lg text-gray-500">/month</span></p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Up to 3 Campaigns
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Basic Analytics
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Email Support
-                </li>
-              </ul>
-              <Link href="/onboarding" className="block w-full bg-gray-100 text-gray-800 font-medium py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors text-center">
-                Get Started
-              </Link>
-            </div>
-
-            {/* Popular Plan */}
-            <div className="bg-white p-8 rounded-xl shadow-lg border-2 border-blue-500 transform scale-105 relative">
-              <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">MOST POPULAR</div>
-              <h3 className="text-2xl font-bold mb-4">Professional</h3>
-              <p className="text-4xl font-bold text-gray-900 mb-6">$299<span className="text-lg text-gray-500">/month</span></p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Up to 10 Campaigns
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Advanced Analytics
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Priority Support
-                </li>
-              </ul>
-              <Link href="/onboarding" className="block w-full bg-blue-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-center">
-                Get Started
-              </Link>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-white p-8 rounded-xl shadow-md">
-              <h3 className="text-2xl font-bold mb-4">Enterprise</h3>
-              <p className="text-4xl font-bold text-gray-900 mb-6">Custom</p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Unlimited Campaigns
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Advanced Analytics & Reporting
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  24/7 Dedicated Support
-                </li>
-              </ul>
-              <Link href="/contact" className="block w-full bg-gray-100 text-gray-800 font-medium py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors text-center">
-                Contact Sales
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
