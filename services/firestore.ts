@@ -792,4 +792,126 @@ export class SimpleStrategyService {
       return { success: false, error: error.message };
     }
   }
+}
+
+// Admin Operations
+export class AdminService {
+  static async getAllUsers(): Promise<APIResponse<any[]>> {
+    try {
+      // Simple query without orderBy - just like the working user dashboard logic
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const users = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      return { success: true, data: users };
+    } catch (error: any) {
+      console.error('Error getting all users:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async getAllClients(): Promise<APIResponse<Client[]>> {
+    try {
+      // Simple query without orderBy - just like the working user dashboard logic
+      const clientsSnapshot = await getDocs(collection(db, 'clients'));
+      const clients = clientsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Client[];
+
+      return { success: true, data: clients };
+    } catch (error: any) {
+      console.error('Error getting all clients:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async getUserWithClientData(userId: string): Promise<APIResponse<any>> {
+    try {
+      // Get user document
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+
+      const userData = { id: userDoc.id, ...userDoc.data() };
+
+      // Get client data for this user - use the SAME logic as user dashboard
+      const clientResult = await ClientService.getClientByUid(userId);
+      let clientData = null;
+      let strategies = [];
+      let campaigns = [];
+
+      if (clientResult.success && clientResult.data) {
+        clientData = clientResult.data;
+
+        // Use the EXACT same services as user dashboard - these work!
+        console.log('🔍 Loading strategies for client:', clientData.id);
+        const strategiesResult = await SimpleStrategyService.getStrategiesByClient(clientData.id);
+        console.log('📊 Strategies result:', strategiesResult);
+        
+        if (strategiesResult.success && strategiesResult.data) {
+          strategies = strategiesResult.data;
+        }
+
+        console.log('🔍 Loading campaigns for client:', clientData.id);
+        const campaignsResult = await SimpleCampaignService.getCampaignsByClient(clientData.id);
+        console.log('📊 Campaigns result:', campaignsResult);
+        
+        if (campaignsResult.success && campaignsResult.data) {
+          campaigns = campaignsResult.data;
+        }
+      }
+
+      return { 
+        success: true, 
+        data: {
+          user: userData,
+          client: clientData,
+          strategies,
+          campaigns
+        }
+      };
+    } catch (error: any) {
+      console.error('Error getting user with client data:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async getDashboardStats(): Promise<APIResponse<any>> {
+    try {
+      // Get counts of various entities
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const clientsSnapshot = await getDocs(collection(db, 'clients'));
+      const strategiesSnapshot = await getDocs(collection(db, 'simple_strategies'));
+      const campaignsSnapshot = await getDocs(collection(db, 'simple_campaigns'));
+
+      const stats = {
+        totalUsers: usersSnapshot.size,
+        totalClients: clientsSnapshot.size,
+        totalStrategies: strategiesSnapshot.size,
+        totalCampaigns: campaignsSnapshot.size,
+        activeUsers: usersSnapshot.docs.filter(doc => {
+          const data = doc.data();
+          const lastLogin = data.lastLogin;
+          if (!lastLogin) return false;
+          
+          // Consider user active if logged in within last 30 days
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          
+          const loginDate = lastLogin.toDate ? lastLogin.toDate() : new Date(lastLogin);
+          return loginDate > thirtyDaysAgo;
+        }).length
+      };
+
+      return { success: true, data: stats };
+    } catch (error: any) {
+      console.error('Error getting dashboard stats:', error);
+      return { success: false, error: error.message };
+    }
+  }
 } 

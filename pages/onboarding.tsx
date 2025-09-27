@@ -9,7 +9,7 @@ import { Loading } from '../components/ui/Loading';
 import { OnboardingFormData, Platform, MarketingGoal } from '../types';
 
 export default function Onboarding() {
-  const { user, login, signup, loginWithGoogle } = useAuth();
+  const { user, login, signup, loginWithGoogle, isAdmin } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -97,7 +97,11 @@ export default function Onboarding() {
       });
 
       if (result.success) {
-        router.push('/dashboard');
+        if (isAdmin) {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         alert('Error creating client profile: ' + result.error);
       }
@@ -467,12 +471,16 @@ export default function Onboarding() {
                           onChange={() => handlePlatformChange(platform)}
                         />
                         <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm ${
-                            platform === 'meta' ? 'bg-blue-600' :
-                            platform === 'google' ? 'bg-red-500' :
-                            'bg-green-500'
-                          }`}>
-                            {platform === 'meta' ? 'M' : platform === 'google' ? 'G' : 'W'}
+                          <div className="w-8 h-8 rounded bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                            <img 
+                              src={`/${
+                                platform === 'meta' ? '250px-2023_Facebook_icon.svg.webp' :
+                                platform === 'google' ? 'Google__G__logo.webp' : 
+                                '250px-WhatsApp.svg.webp'
+                              }`}
+                              alt={`${platform} logo`}
+                              className="w-5 h-5 object-contain"
+                            />
                           </div>
                           <div>
                             <div className="font-medium">

@@ -213,22 +213,34 @@ export default function Home() {
           {/* Platform Icons */}
           <div className="mt-16 flex flex-wrap justify-center gap-8">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">f</span>
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                <img 
+                  src="/250px-2023_Facebook_icon.svg.webp" 
+                  alt="Facebook Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <span className="text-gray-600">Meta Ads</span>
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">W</span>
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                <img 
+                  src="/250px-WhatsApp.svg.webp" 
+                  alt="WhatsApp Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <span className="text-gray-600">WhatsApp</span>
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">G</span>
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                <img 
+                  src="/Google__G__logo.webp" 
+                  alt="Google Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <span className="text-gray-600">Google Ads</span>
             </div>

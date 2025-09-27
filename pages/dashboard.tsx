@@ -15,7 +15,7 @@ interface Strategy {
 }
 
 export default function Dashboard() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, isAdmin } = useAuth();
   const router = useRouter();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -70,8 +70,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+    } else if (!loading && user && isAdmin) {
+      // Redirect admins to admin dashboard
+      router.push('/admin');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isAdmin]);
 
   // Load client data when user is available
   useEffect(() => {
@@ -808,8 +811,15 @@ export default function Dashboard() {
                                   } ${campaign.enabled ? '' : 'opacity-50'}`}
                                   title={`${campaign.platform} - ${campaign.enabled ? 'Active' : 'Inactive'}`}
                                 >
-                                  {campaign.platform === 'meta' ? '📘' :
-                                   campaign.platform === 'google' ? '🔍' : '💬'}
+                                  <img 
+                                    src={`/${
+                                      campaign.platform === 'meta' ? '250px-2023_Facebook_icon.svg.webp' :
+                                      campaign.platform === 'google' ? 'Google__G__logo.webp' : 
+                                      '250px-WhatsApp.svg.webp'
+                                    }`}
+                                    alt={`${campaign.platform} logo`}
+                                    className="w-5 h-5 object-contain"
+                                  />
                                 </div>
                               ))}
                             </div>
@@ -848,8 +858,15 @@ export default function Dashboard() {
                                       campaign.platform === 'google' ? 'bg-red-100 text-red-600' :
                                       'bg-green-100 text-green-600'
                                     }`}>
-                                      {campaign.platform === 'meta' ? '📘' :
-                                       campaign.platform === 'google' ? '🔍' : '💬'}
+                                      <img 
+                                        src={`/${
+                                          campaign.platform === 'meta' ? '250px-2023_Facebook_icon.svg.webp' :
+                                          campaign.platform === 'google' ? 'Google__G__logo.webp' : 
+                                          '250px-WhatsApp.svg.webp'
+                                        }`}
+                                        alt={`${campaign.platform} logo`}
+                                        className="w-6 h-6 object-contain"
+                                      />
                                     </div>
                                     <div>
                                       <h4 className="font-medium text-gray-900">{campaign.name}</h4>
