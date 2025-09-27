@@ -64,19 +64,19 @@ export default function AdminDashboard() {
         try {
           // Load dashboard stats
           const statsResult = await AdminService.getDashboardStats();
-          if (statsResult.success) {
+          if (statsResult.success && statsResult.data) {
             setStats(statsResult.data);
           }
 
           // Load all users
           const usersResult = await AdminService.getAllUsers();
-          if (usersResult.success) {
+          if (usersResult.success && usersResult.data) {
             setUsers(usersResult.data);
           }
 
           // Load all clients
           const clientsResult = await AdminService.getAllClients();
-          if (clientsResult.success) {
+          if (clientsResult.success && clientsResult.data) {
             setClients(clientsResult.data);
           }
         } catch (error) {
