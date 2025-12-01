@@ -1,79 +1,77 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { HeroGeometric } from '@/components/ui/shape-landing-hero';
-import { SparklesText } from '@/components/ui/sparkles-text';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  
   // Toggle mobile menu
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
-
+  
   // Close mobile menu when clicking outside or navigating
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       const menuButton = document.querySelector('[aria-label="Toggle menu"]');
-
-      if (mobileMenuOpen &&
-        !target.closest('.mobile-menu') &&
-        !target.isSameNode(menuButton) &&
-        !menuButton?.contains(target)) {
+      
+      if (mobileMenuOpen && 
+          !target.closest('.mobile-menu') && 
+          !target.isSameNode(menuButton) && 
+          !menuButton?.contains(target)) {
         setMobileMenuOpen(false);
       }
     };
-
+    
     const handleRouteChange = () => {
       setMobileMenuOpen(false);
     };
-
+    
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('popstate', handleRouteChange);
-
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('popstate', handleRouteChange);
     };
   }, [mobileMenuOpen]);
-
+  
   // Handle navigation for anchor links
   const handleNavigation = (e: React.MouseEvent, sectionId: string) => {
     e.preventDefault();
     setMobileMenuOpen(false);
-
+    
     console.log(`Navigating to section: ${sectionId}`);
-
+    
     // Small delay to allow the mobile menu to close before scrolling
     setTimeout(() => {
       const section = document.getElementById(sectionId);
       console.log('Section element:', section);
-
+      
       if (section) {
         // Add a temporary highlight to make the section visible
         section.style.transition = 'background-color 0.5s';
         section.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-
+        
         // Remove highlight after animation
         setTimeout(() => {
           section.style.backgroundColor = '';
         }, 2000);
-
+        
         // Calculate the position to scroll to, accounting for the fixed header
         const headerOffset = 80; // Height of your header
         const elementPosition = section.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
+        
         console.log('Scrolling to position:', offsetPosition);
-
+        
         // Scroll to the section
         window.scrollTo({
           top: offsetPosition,
           behavior: 'smooth'
         });
-
+        
         // Update URL without page reload
         window.history.pushState({}, '', `#${sectionId}`);
       } else {
@@ -96,14 +94,12 @@ export default function Home() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Link href="/">
-                <SparklesText
-                  text="Adziga AI"
-                  className="text-2xl md:text-3xl font-bold text-gray-900 cursor-pointer"
-                  colors={{ first: '#2563EB', second: '#9333EA' }}
-                />
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer">
+                  Adziga AI
+                </h1>
               </Link>
             </div>
-
+            
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
               <a href="#features" className="text-gray-700 hover:text-blue-600 transition-colors px-3 py-2">
@@ -119,7 +115,7 @@ export default function Home() {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden z-50">
-              <button
+              <button 
                 className="text-gray-700 hover:text-blue-600 p-2 focus:outline-none"
                 onClick={toggleMobileMenu}
                 aria-label="Toggle menu"
@@ -144,13 +140,13 @@ export default function Home() {
       {/* Mobile Menu */}
       <div className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
         {mobileMenuOpen && (
-          <div
+          <div 
             className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-40"
             onClick={toggleMobileMenu}
             role="presentation"
           ></div>
         )}
-        <div
+        <div 
           className={`mobile-menu absolute top-0 left-0 right-0 bg-white shadow-lg rounded-b-lg transform transition-transform duration-300 ease-in-out z-50 ${mobileMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}
           role="dialog"
           aria-modal="true"
@@ -158,23 +154,23 @@ export default function Home() {
           style={{ maxHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}
         >
           <div className="pt-4 pb-6 px-4 space-y-3">
-            <a
-              href="#features"
+            <a 
+              href="#features" 
               className="block px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
               onClick={(e) => handleNavigation(e, 'features')}
             >
               Features
             </a>
             <div className="border-t border-gray-200 my-2"></div>
-            <Link
-              href="/login"
+            <Link 
+              href="/login" 
               className="block px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
               onClick={() => setMobileMenuOpen(false)}
             >
               Login
             </Link>
-            <Link
-              href="/onboarding"
+            <Link 
+              href="/onboarding" 
               className="block bg-blue-600 text-white px-4 py-3 rounded-lg text-base font-medium hover:bg-blue-700 text-center mt-2"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -185,56 +181,59 @@ export default function Home() {
       </div>
 
       {/* Hero Section */}
-      <div className={`transition-opacity ${mobileMenuOpen ? 'opacity-50' : 'opacity-100'}`}>
-        <HeroGeometric
-          badge="AI-Powered Advertising"
-          title1="Advertising"
-          title2="That Works"
-          description="Transform your business with autonomous advertising campaigns. Our AI creates strategies and executes campaigns across Meta, Google, and WhatsApp automatically."
-        >
-          <div className="flex flex-col items-center gap-8 mt-8">
-            <Link href="/onboarding" className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors z-20 relative">
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 transition-opacity ${mobileMenuOpen ? 'opacity-50' : 'opacity-100'}`}>
+        <div className="text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            AI-Powered <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Advertising</span> That Works
+          </h1>
+          
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Transform your business with autonomous advertising campaigns. Our AI creates strategies and executes campaigns across Meta, Google, and WhatsApp automatically.
+          </p>
+          
+          <div className="flex justify-center">
+            <Link href="/onboarding" className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors">
               Start Your Campaign
             </Link>
+          </div>
 
-            {/* Platform Icons */}
-            <div className="flex flex-wrap justify-center gap-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-sm border border-white/20">
-                  <img
-                    src="/250px-2023_Facebook_icon.svg.webp"
-                    alt="Facebook Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <span className="text-white/80">Meta Ads</span>
+          {/* Platform Icons */}
+          <div className="mt-16 flex flex-wrap justify-center gap-8">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                <img 
+                  src="/250px-2023_Facebook_icon.svg.webp" 
+                  alt="Facebook Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
-
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-sm border border-white/20">
-                  <img
-                    src="/250px-WhatsApp.svg.webp"
-                    alt="WhatsApp Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <span className="text-white/80">WhatsApp</span>
+              <span className="text-gray-600">Meta Ads</span>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                <img 
+                  src="/250px-WhatsApp.svg.webp" 
+                  alt="WhatsApp Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
-
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-sm border border-white/20">
-                  <img
-                    src="/Google__G__logo.webp"
-                    alt="Google Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <span className="text-white/80">Google Ads</span>
+              <span className="text-gray-600">WhatsApp</span>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                <img 
+                  src="/Google__G__logo.webp" 
+                  alt="Google Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
+              <span className="text-gray-600">Google Ads</span>
             </div>
           </div>
-        </HeroGeometric>
-      </div>
+        </div>
+      </main>
 
       {/* Features Section */}
       <section id="features" className="bg-white py-20 scroll-mt-20">
