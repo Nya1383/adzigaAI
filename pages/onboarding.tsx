@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth-context';
 import { ClientService } from '../services/firestore';
 import Button from '../components/ui/Button';
 import { Loading } from '../components/ui/Loading';
+import { Input } from '@/components/ui/input';
 import { OnboardingFormData, Platform, MarketingGoal } from '../types';
 
 export default function Onboarding() {
@@ -15,7 +16,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
-  
+
   const [formData, setFormData] = useState<OnboardingFormData>({
     businessName: '',
     businessType: '',
@@ -36,20 +37,20 @@ export default function Onboarding() {
   });
 
   const businessTypes = [
-    'restaurant', 'retail', 'service', 'ecommerce', 'healthcare', 
+    'restaurant', 'retail', 'service', 'ecommerce', 'healthcare',
     'education', 'real_estate', 'automotive', 'beauty', 'fitness', 'other'
   ];
 
   const industries = [
-    'food_beverage', 'fashion_apparel', 'technology', 'healthcare', 
-    'education', 'real_estate', 'automotive', 'beauty_wellness', 
+    'food_beverage', 'fashion_apparel', 'technology', 'healthcare',
+    'education', 'real_estate', 'automotive', 'beauty_wellness',
     'fitness_sports', 'home_garden', 'travel_tourism', 'professional_services', 'other'
   ];
 
   const platforms: Platform[] = ['meta', 'google', 'whatsapp'];
-  
+
   const marketingGoals: MarketingGoal[] = [
-    'brand_awareness', 'traffic', 'engagement', 'leads', 
+    'brand_awareness', 'traffic', 'engagement', 'leads',
     'conversions', 'sales', 'app_installs', 'video_views'
   ];
 
@@ -197,37 +198,33 @@ export default function Onboarding() {
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
               <form className="space-y-6" onSubmit={handleAuth}>
                 {authMode === 'signup' && (
-                  <div>
-                    <label className="label-field">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      className="input-field"
+                  <div className="mb-4">
+                    <Input
+                      label="Full Name"
                       value={authData.name}
                       onChange={(e) => setAuthData(prev => ({ ...prev, name: e.target.value }))}
+                      required
                     />
                   </div>
                 )}
 
-                <div>
-                  <label className="label-field">Email address</label>
-                  <input
+                <div className="mb-4">
+                  <Input
+                    label="Email address"
                     type="email"
-                    required
-                    className="input-field"
                     value={authData.email}
                     onChange={(e) => setAuthData(prev => ({ ...prev, email: e.target.value }))}
+                    required
                   />
                 </div>
 
-                <div>
-                  <label className="label-field">Password</label>
-                  <input
+                <div className="mb-6">
+                  <Input
+                    label="Password"
                     type="password"
-                    required
-                    className="input-field"
                     value={authData.password}
                     onChange={(e) => setAuthData(prev => ({ ...prev, password: e.target.value }))}
+                    required
                   />
                 </div>
 
@@ -261,10 +258,10 @@ export default function Onboarding() {
                       disabled={loading}
                     >
                       <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                       </svg>
                       Continue with Google
                     </Button>
@@ -307,9 +304,8 @@ export default function Onboarding() {
                 {[1, 2, 3].map((stepNum, index) => (
                   <div key={stepNum} className="flex items-center flex-1">
                     <div className="flex flex-col items-center flex-1">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${
-                        stepNum <= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${stepNum <= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                        }`}>
                         {stepNum}
                       </div>
                       <span className="text-sm text-gray-600 text-center">
@@ -317,9 +313,8 @@ export default function Onboarding() {
                       </span>
                     </div>
                     {stepNum < 3 && (
-                      <div className={`flex-1 h-1 mx-4 ${
-                        stepNum < step ? 'bg-blue-600' : 'bg-gray-200'
-                      }`} />
+                      <div className={`flex-1 h-1 mx-4 ${stepNum < step ? 'bg-blue-600' : 'bg-gray-200'
+                        }`} />
                     )}
                   </div>
                 ))}
@@ -334,13 +329,11 @@ export default function Onboarding() {
             {step === 1 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Tell us about your business</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="label-field">Business Name *</label>
-                    <input
-                      type="text"
-                      className="input-field"
+                  <div className="mt-4">
+                    <Input
+                      label="Business Name *"
                       value={formData.businessName}
                       onChange={(e) => handleInputChange('businessName', e.target.value)}
                       placeholder="e.g., Mumbai Cafe"
@@ -379,11 +372,10 @@ export default function Onboarding() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="label-field">Website (Optional)</label>
-                    <input
+                  <div className="mt-4">
+                    <Input
+                      label="Website (Optional)"
                       type="url"
-                      className="input-field"
                       value={formData.website}
                       onChange={(e) => handleInputChange('website', e.target.value)}
                       placeholder="https://your-website.com"
@@ -406,24 +398,21 @@ export default function Onboarding() {
             {step === 2 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Budget & Platform Preferences</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="label-field">City/Location *</label>
-                    <input
-                      type="text"
-                      className="input-field"
+                  <div className="mt-4">
+                    <Input
+                      label="City/Location *"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
                       placeholder="e.g., Mumbai, Bangalore"
                     />
                   </div>
 
-                  <div>
-                    <label className="label-field">Phone (Optional)</label>
-                    <input
+                  <div className="mt-4">
+                    <Input
+                      label="Phone (Optional)"
                       type="tel"
-                      className="input-field"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       placeholder="+91 9876543210"
@@ -439,11 +428,10 @@ export default function Onboarding() {
                         key={range.value}
                         type="button"
                         onClick={() => handleInputChange('budget', range.value)}
-                        className={`p-4 border rounded-lg text-left transition-colors ${
-                          formData.budget === range.value
+                        className={`p-4 border rounded-lg text-left transition-colors ${formData.budget === range.value
                             ? 'border-blue-500 bg-blue-50 text-blue-700'
                             : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                          }`}
                       >
                         {range.label}
                       </button>
@@ -458,11 +446,10 @@ export default function Onboarding() {
                     {platforms.map(platform => (
                       <label
                         key={platform}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          formData.preferredPlatforms.includes(platform)
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${formData.preferredPlatforms.includes(platform)
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -472,12 +459,11 @@ export default function Onboarding() {
                         />
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 rounded bg-white border border-gray-200 flex items-center justify-center shadow-sm">
-                            <img 
-                              src={`/${
-                                platform === 'meta' ? '250px-2023_Facebook_icon.svg.webp' :
-                                platform === 'google' ? 'Google__G__logo.webp' : 
-                                '250px-WhatsApp.svg.webp'
-                              }`}
+                            <img
+                              src={`/${platform === 'meta' ? '250px-2023_Facebook_icon.svg.webp' :
+                                  platform === 'google' ? 'Google__G__logo.webp' :
+                                    '250px-WhatsApp.svg.webp'
+                                }`}
                               alt={`${platform} logo`}
                               className="w-5 h-5 object-contain"
                             />
@@ -485,13 +471,13 @@ export default function Onboarding() {
                           <div>
                             <div className="font-medium">
                               {platform === 'meta' ? 'Meta (Facebook & Instagram)' :
-                               platform === 'google' ? 'Google Ads' :
-                               'WhatsApp Business'}
+                                platform === 'google' ? 'Google Ads' :
+                                  'WhatsApp Business'}
                             </div>
                             <div className="text-sm text-gray-500">
                               {platform === 'meta' ? 'Social media advertising' :
-                               platform === 'google' ? 'Search & display ads' :
-                               'Direct messaging campaigns'}
+                                platform === 'google' ? 'Search & display ads' :
+                                  'Direct messaging campaigns'}
                             </div>
                           </div>
                         </div>
@@ -505,7 +491,7 @@ export default function Onboarding() {
             {step === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Marketing Goals</h2>
-                
+
                 <div className="mb-6">
                   <label className="label-field">Primary Marketing Goal *</label>
                   <p className="text-sm text-gray-600 mb-4">What's your main objective for this advertising campaign?</p>
@@ -515,24 +501,23 @@ export default function Onboarding() {
                         key={goal}
                         type="button"
                         onClick={() => handleInputChange('marketingGoal', goal)}
-                        className={`p-4 border rounded-lg text-left transition-colors ${
-                          formData.marketingGoal === goal
+                        className={`p-4 border rounded-lg text-left transition-colors ${formData.marketingGoal === goal
                             ? 'border-blue-500 bg-blue-50 text-blue-700'
                             : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                          }`}
                       >
                         <div className="font-medium">
                           {goal.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
                           {goal === 'brand_awareness' ? 'Increase brand visibility and recognition' :
-                           goal === 'traffic' ? 'Drive more visitors to your website' :
-                           goal === 'engagement' ? 'Boost social media engagement' :
-                           goal === 'leads' ? 'Generate more qualified leads' :
-                           goal === 'conversions' ? 'Increase sales and conversions' :
-                           goal === 'sales' ? 'Boost direct sales revenue' :
-                           goal === 'app_installs' ? 'Get more app downloads' :
-                           'Increase video views and watch time'}
+                            goal === 'traffic' ? 'Drive more visitors to your website' :
+                              goal === 'engagement' ? 'Boost social media engagement' :
+                                goal === 'leads' ? 'Generate more qualified leads' :
+                                  goal === 'conversions' ? 'Increase sales and conversions' :
+                                    goal === 'sales' ? 'Boost direct sales revenue' :
+                                      goal === 'app_installs' ? 'Get more app downloads' :
+                                        'Increase video views and watch time'}
                         </div>
                       </button>
                     ))}
@@ -583,4 +568,4 @@ export default function Onboarding() {
       </div>
     </>
   );
-} 
+}
