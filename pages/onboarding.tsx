@@ -376,7 +376,7 @@ export default function Onboarding() {
                     <Input
                       label="Website (Optional)"
                       type="url"
-                      value={formData.website}
+                      value={formData.website || ''}
                       onChange={(e) => handleInputChange('website', e.target.value)}
                       placeholder="https://your-website.com"
                     />
@@ -413,7 +413,7 @@ export default function Onboarding() {
                     <Input
                       label="Phone (Optional)"
                       type="tel"
-                      value={formData.phone}
+                      value={formData.phone || ''}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       placeholder="+91 9876543210"
                     />
@@ -429,8 +429,8 @@ export default function Onboarding() {
                         type="button"
                         onClick={() => handleInputChange('budget', range.value)}
                         className={`p-4 border rounded-lg text-left transition-colors ${formData.budget === range.value
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 hover:border-gray-400'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 hover:border-gray-400'
                           }`}
                       >
                         {range.label}
@@ -447,8 +447,8 @@ export default function Onboarding() {
                       <label
                         key={platform}
                         className={`p-4 border rounded-lg cursor-pointer transition-colors ${formData.preferredPlatforms.includes(platform)
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-300 hover:border-gray-400'
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-gray-400'
                           }`}
                       >
                         <input
@@ -461,8 +461,8 @@ export default function Onboarding() {
                           <div className="w-8 h-8 rounded bg-white border border-gray-200 flex items-center justify-center shadow-sm">
                             <img
                               src={`/${platform === 'meta' ? '250px-2023_Facebook_icon.svg.webp' :
-                                  platform === 'google' ? 'Google__G__logo.webp' :
-                                    '250px-WhatsApp.svg.webp'
+                                platform === 'google' ? 'Google__G__logo.webp' :
+                                  '250px-WhatsApp.svg.webp'
                                 }`}
                               alt={`${platform} logo`}
                               className="w-5 h-5 object-contain"
@@ -502,8 +502,8 @@ export default function Onboarding() {
                         type="button"
                         onClick={() => handleInputChange('marketingGoal', goal)}
                         className={`p-4 border rounded-lg text-left transition-colors ${formData.marketingGoal === goal
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 hover:border-gray-400'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 hover:border-gray-400'
                           }`}
                       >
                         <div className="font-medium">
